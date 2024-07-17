@@ -30,48 +30,84 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/books',function (req, res) {
-  //Write your code here
-  res.send(JSON.stringify(books,null,4));
- //return res.status(300).json({message: "Yet to be implemented"});
-});
+
+    const get_books = new Promise((resolve, reject) => {
+        resolve(res.send(JSON.stringify({books}, null, 4)));
+      });
+
+      get_books.then(() => console.log("Promise resolved"));
+
+  });
+
+
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
+  
   const isbn = req.params.isbn;
-  res.send(JSON.stringify(books[isbn],null,4));
-  //return res.status(300).json({message: "Yet to be implemented"});
+  const get_details = new Promise((resolve, reject) => {
+    resolve(res.send(JSON.stringify(books[isbn], null, 4)));
+  });
+
+  get_details.then(() => console.log("Promise resolved"));
+
  });
   
+
+
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  let booksbyauthor = [];
-  let isbns = Object.keys(books);
-  isbns.forEach((isbn) => {
-    if(books[isbn]["author"] === req.params.author) {
-      booksbyauthor.push({"isbn":isbn,
-                          "author":books[isbn]["author"],
-                          "reviews":books[isbn]["reviews"]});
+public_users.get('/author/:author', async function (req, res) {
+    try {
+        let booksbyauthor = [];
+        let isbns = Object.keys(books);
+
+        // Using Promise.all to asynchronously filter books
+        await Promise.all(isbns.map(async (isbn) => {
+            if (books[isbn]["author"] === req.params.author) {
+                booksbyauthor.push({
+                    "isbn": isbn,
+                    "author": books[isbn]["author"],
+                    "reviews": books[isbn]["reviews"]
+                });
+            }
+        }));
+
+        // Sending the response after all books are processed
+        res.send(JSON.stringify(booksbyauthor, null, 4));
+    } catch (err) {
+        // Handle any errors that might occur
+        console.error(err);
+        res.status(500).send("Error fetching books by author");
     }
 });
-  res.send(JSON.stringify(booksbyauthor,null,4));
-  //return res.status(300).json({message: "Yet to be implemented"});
-});
+
+
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-    let booksbytitle = [];
-    let isbns = Object.keys(books);
-    isbns.forEach((isbn) => {
-      if(books[isbn]["title"] === req.params.title) {
-        booksbytitle.push({"isbn":isbn,
-                            "author":books[isbn]["author"],
-                            "reviews":books[isbn]["reviews"]});
-      }
-    });
-    res.send(JSON.stringify(booksbytitle, null, 4));
-  });
+public_users.get('/title/:title', async function (req, res) {
+    try {
+        let booksbytitle = [];
+        let isbns = Object.keys(books);
+
+        // Using Promise.all to asynchronously filter books
+        await Promise.all(isbns.map(async (isbn) => {
+            if (books[isbn]["title"] === req.params.title) {
+                booksbytitle.push({
+                    "isbn": isbn,
+                    "author": books[isbn]["author"],
+                    "reviews": books[isbn]["reviews"]
+                });
+            }
+        }));
+
+        // Sending the response after all books are processed
+        res.send(JSON.stringify(booksbytitle, null, 4));
+    } catch (err) {
+        // Handle any errors that might occur
+        console.error(err);
+        res.status(500).send("Error fetching books by title");
+    }
+});
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
